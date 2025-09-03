@@ -1,13 +1,38 @@
 #include <stdio.h>
 
-int check_row(char grid[3][3]) {
-    for (int row_i = 0; row_i < 3; row_i++) {
-        if (grid[row_i][0] == grid[row_i][1] &&
-            grid[row_i][1] == grid[row_i][2] &&
-            grid[row_i][0] != ' ')
-            return 1;     // a row has the same mark
+// checks all winning conditions (rows, columns, diagonals)
+int check_win(char box[3][3]) {
+    int row_i, col_i;
+
+    // check each row
+    for (row_i = 0; row_i < 3; row_i++) {
+        if (box[row_i][0] == box[row_i][1] &&
+            box[row_i][1] == box[row_i][2] &&
+            box[row_i][0] != ' ')
+            return 1;
     }
-    return 0;
+
+    // check each column
+    for (col_i = 0; col_i < 3; col_i++) {
+        if (box[0][col_i] == box[1][col_i] &&
+            box[1][col_i] == box[2][col_i] &&
+            box[0][col_i] != ' ')
+            return 1;
+    }
+
+    // check main diagonal
+    if (box[0][0] == box[1][1] &&
+        box[1][1] == box[2][2] &&
+        box[0][0] != ' ')
+        return 1;
+
+    // check anti-diagonal
+    if (box[0][2] == box[1][1] &&
+        box[1][1] == box[2][0] &&
+        box[0][2] != ' ')
+        return 1;
+
+    return 0; // no win yet
 }
 
 int main() {
@@ -28,8 +53,8 @@ printf("=== TIC TAC TOE ===\n");
         board[row_no][col_no] = (player_turn == 1) ? 'X' : 'O';
         move_count++;
 
-        if (check_row(board)) {
-            printf("\nPlayer %d wins by row!\n", player_turn);
+        if (check_win(board)) {
+            printf("\nPlayer %d wins!\n", player_turn);
             game_win = 1;
         } else {
             player_turn = (player_turn == 1) ? 2 : 1;
@@ -51,6 +76,8 @@ printf("=== TIC TAC TOE ===\n");
 
     return 0;
 }
+
+
 
 
 
