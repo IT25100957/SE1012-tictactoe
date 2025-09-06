@@ -17,9 +17,14 @@ int main() {
         printf("\nPlayer %d enter row and column (0-2): ", player_turn);
         scanf("%d %d", &row_no, &col_no);
 
+        if (!valid_move(row_no, col_no)) {
+            printf("Invalid position! Enter values between 0 and 2.\n");
+            continue; // repeating until valid move
+        }
+
         if (board[row_no][col_no] == ' ') {
             board[row_no][col_no] = (player_turn == 1) ? 'X' : 'O';
-            move_count++;
+            move_count++; // incrementing move count
 
             display_board(board);
 
@@ -40,7 +45,6 @@ int main() {
     printf("\n=== Game Over ===\n");
     return 0;
 }
-
 
 
 
