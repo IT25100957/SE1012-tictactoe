@@ -1,50 +1,32 @@
 #include "tictactoe.h"
 
 int main() {
-    char board[3][3] = {
-        {' ',' ',' '},
-        {' ',' ',' '},
-        {' ',' ',' '}
-    };
-    int player_turn = 1;
-    int move_count = 0;
-    int row_no, col_no;
-    int game_win = 0;
+int user_choice;
+int keep_playing = 1;
 
-    printf("=== TIC TAC TOE ===\n");
+while (keep_playing) {
+    printf("\n=== TIC TAC TOE MENU ===\n");
+    printf("1. Play Game\n");
+    printf("2. Exit\n");
+    printf("Enter your choice: ");
+    scanf("%d", &user_choice);
 
-    while (move_count < 9 && !game_win) {
-        printf("\nPlayer %d enter row and column (0-2): ", player_turn);
-        scanf("%d %d", &row_no, &col_no);
-
-        if (!valid_move(row_no, col_no)) {
-            printf("Invalid position! Enter values between 0 and 2.\n");
-            continue; // repeating until valid move
-        }
-
-        if (board[row_no][col_no] == ' ') {
-            board[row_no][col_no] = (player_turn == 1) ? 'X' : 'O';
-            move_count++; // incrementing move count
-
-            display_board(board);
-
-            if (check_win(board)) {
-                printf("\nPlayer %d wins!\n", player_turn);
-                game_win = 1;
-            } else if (is_draw(move_count, game_win)) {
-                printf("\nGame draw! No more moves left.\n");
-                break;
-            } else {
-                player_turn = (player_turn == 1) ? 2 : 1;
-            }
-        } else {
-            printf("That cell is already filled. Try again!\n");
+        if (user_choice == 1) {
+            play_game();
+        } 
+        else if (user_choice == 2) {
+            printf("\nExiting... Goodbye!\n");
+            keep_playing = 0;
+        } 
+        else {
+            printf("\nInvalid choice! Please select 1 or 2.\n");
         }
     }
 
-    printf("\n=== Game Over ===\n");
-    return 0;
+return 0;
 }
+
+
 
 
 
