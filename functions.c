@@ -82,28 +82,38 @@ printf("\n");
 
 // ===== draw condition =====
 int is_draw(int move_count, int game_win, int size) {
-    int total_moves = size * size;
-    return (!game_win && move_count == total_moves);
+    return (!game_win && move_count == size * size);
 }
 
 // ===== valid move check =====
 int valid_move(int row_no, int col_no, int size) {
-    if (row_no < 0 || row_no >= size || col_no < 0 || col_no >= size)
-        return 0;
-    return 1;
+    return !(row_no < 0 || row_no >= size || col_no < 0 || col_no >= size);
 }
 
-// ===== main game logic =====
+// ===== log move into file =====
+void log_move(FILE *fp, int move_no, int player_turn, int row_no, int col_no, char **board, int size) {
+    fprintf(fp, "Move %d: Player %d (%c) at [%d, %d]\n",
+            move_no, player_turn, (player_turn == 1) ? 'X' : 'O', row_no, col_no);
+    fprintf(fp, "Board state:\n");
+
+    for (int r = 0; r < size; r++) {
+        for (int c = 0; c < size; c++) {
+            fprintf(fp, "%c ", board[r][c]);
+        }
+        fprintf(fp, "\n");
+    }
+    fprintf(fp, "--------------------------\n");
+}
+
+// ===== main game function =====
 void play_game(int size) {
     int row_no, col_no;
     int player_turn = 1;
     int move_count = 0;
     int game_win = 0;
-    int i;
 
-// dynamic allocation
 char **board = (char **)malloc(size * sizeof(char *));
-for (i = 0; i < size; i++)
+for (int i = 0; i < size; i++)
     board[i] = (char *)malloc(size * sizeof(char));
 
 // initialize with spaces
@@ -111,9 +121,15 @@ for (int r = 0; r < size; r++)
     for (int c = 0; c < size; c++)
         board[r][c] = ' ';
 
-instruct();
+    instruct();
+    printf("=== TIC TAC TOE %dx%d ===\n", size, size);
 
-printf("\n=== TIC TAC TOE %dx%d ===\n", size, size);
+    FILE *fp = fopen("game_log.txt", "w");
+    if (fp == NULL) {
+        printf("Error opening log file!\n");
+        return;
+    }
+    fprintf(fp, "Tic Tac Toe Game Log (%dx%d)\n\n", size, size);
 
 while (move_count < size * size && !game_win) {
     printf("\nPlayer %d enter row and column (0-%d): ", player_turn, size - 1);
@@ -128,29 +144,38 @@ while (move_count < size * size && !game_win) {
         board[row_no][col_no] = (player_turn == 1) ? 'X' : 'O';
         move_count++;
 
-        display_board(board, size);
+            display_board(board, size);
+            log_move(fp, move_count, player_turn, row_no, col_no, board, size);
 
         if (check_win(board, size, (player_turn == 1) ? 'X' : 'O')) {
             printf("\nPlayer %d wins!\n", player_turn);
+            fprintf(fp, "\nPlayer %d wins!\n", player_turn);
             game_win = 1;
-        } else if (is_draw(move_count, game_win, size)) {
+            } 
+        else if (is_draw(move_count, game_win, size)) {
             printf("\nGame draw! No more moves left.\n");
+            fprintf(fp, "\nGame draw! No more moves left.\n");
             break;
-        } else {
+        } 
+        else {
             player_turn = (player_turn == 1) ? 2 : 1;
+            }
+        } else {
+            printf("That cell is already filled! Try again.\n");
         }
-    } else {
-        printf("That cell is already filled! Try again.\n");
     }
-}
 
-    printf("\n=== Game Over ===\n");
+    fprintf(fp, "\n=== End of Game ===\n");
+    fclose(fp);
 
-// free memory
-for (i = 0; i < size; i++)
+for (int i = 0; i < size; i++)
     free(board[i]);
-free(board);
+    free(board);
+
+printf("\nGame results have been saved to 'game_log.txt'.\n");
 }
 
 
  
+
+
