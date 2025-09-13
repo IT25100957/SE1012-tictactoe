@@ -63,14 +63,26 @@ if (match) return 1;
 // prints the current game board
 void display_board(char **grid, int size) {
 int row_i, col_i;
-printf("\nCurrent board:\n\n");
-for (row_i = 0; row_i < size; row_i++) {
-    for (col_i = 0; col_i < size; col_i++) {
-        printf(" %c ", grid[row_i][col_i]);
-        if (col_i < size - 1) printf("|");
-        }
+
+// Print column labels
+printf("\n   ");
+for (col_i = 0; col_i < size; col_i++) {
+    printf(" %d  ", col_i);
+}
 printf("\n");
+
+for (row_i = 0; row_i < size; row_i++) {
+    // Row label
+    printf(" %d ", row_i);
+        for (col_i = 0; col_i < size; col_i++) {
+            printf(" %c ", grid[row_i][col_i]);
+            if (col_i < size - 1) printf("|");
+        }
+        printf("\n");
+
+        // Separator line
         if (row_i < size - 1) {
+            printf("   ");
             for (col_i = 0; col_i < size; col_i++) {
                 printf("---");
                 if (col_i < size - 1) printf("+");
@@ -94,15 +106,35 @@ int valid_move(int row_no, int col_no, int size) {
 void log_move(FILE *fp, int move_no, int player_turn, int row_no, int col_no, char **board, int size) {
     fprintf(fp, "Move %d: Player %d (%c) at [%d, %d]\n",
             move_no, player_turn, (player_turn == 1) ? 'X' : 'O', row_no, col_no);
-    fprintf(fp, "Board state:\n");
+    fprintf(fp, "Board state:\n\n");
 
+    // Print column labels
+    fprintf(fp, "   ");
+    for (int c = 0; c < size; c++) {
+        fprintf(fp, " %d  ", c);
+    }
+    fprintf(fp, "\n");
+
+    // Print grid with row labels
     for (int r = 0; r < size; r++) {
+        fprintf(fp, " %d ", r);
         for (int c = 0; c < size; c++) {
-            fprintf(fp, "%c ", board[r][c]);
+            fprintf(fp, " %c ",board[r][c]);
+            if (c < size - 1) fprintf(fp, "|");
         }
         fprintf(fp, "\n");
+
+        if (r < size - 1) {
+            fprintf(fp, "   ");
+            for (int c = 0; c < size; c++) {
+                fprintf(fp, "---");
+                if (c < size - 1) fprintf(fp, "+");
+            }
+            fprintf(fp, "\n");
+        }
     }
-    fprintf(fp, "--------------------------\n");
+
+    fprintf(fp, "\n--------------------------------------\n\n");
 }
 
 // ===== main game function =====
@@ -177,5 +209,7 @@ printf("\nGame results have been saved to 'game_log.txt'.\n");
 
 
  
+
+
 
 
