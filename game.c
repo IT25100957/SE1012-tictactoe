@@ -1,31 +1,32 @@
 #include "tictactoe.h"
 
 int main() {
-int user_choice, size;
+int menu_choice, size;
 int keep_playing = 1;
 
 while (keep_playing) {
     printf("\n=== TIC TAC TOE MENU ===\n");
-    printf("1. Play Game\n");
-    printf("2. Exit\n");
+    printf("1. Two Players (User vs User)\n");
+    printf("2. User vs Computer\n");
+    printf("3. Exit\n");
     printf("Enter your choice: ");
-    scanf("%d", &user_choice);
+    scanf("%d", &menu_choice);
 
-        if (user_choice == 1) {
+        if (menu_choice == 1 || menu_choice == 2) {
             printf("Enter board size (3–10): ");
             scanf("%d", &size);
             if (size < 3 || size > 10) {
                 printf("Invalid size! Defaulting to 3x3.\n");
                 size = 3;
             }
-            play_game(size);
+            play_game(size, menu_choice);
         } 
-        else if (user_choice == 2) {
+        else if (menu_choice == 3) {
             printf("\nExiting... Goodbye!\n");
             keep_playing = 0;
         } 
         else {
-            printf("\nInvalid choice! Please select 1 or 2.\n");
+            printf("\nInvalid choice! Please select 1, 2, or 3.\n");
         }
     }
 
