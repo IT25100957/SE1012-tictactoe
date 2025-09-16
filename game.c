@@ -8,7 +8,8 @@ while (keep_playing) {
     printf("\n=== TIC TAC TOE MENU ===\n");
     printf("1. Two Players (User vs User)\n");
     printf("2. User vs Computer\n");
-    printf("3. Exit\n");
+    printf("3. Three Players (Experimental)\n");  // 3 player option added here - not complete yet - just only placeholders
+    printf("4. Exit\n");
     printf("Enter your choice: ");
     scanf("%d", &menu_choice);
 
@@ -20,17 +21,21 @@ while (keep_playing) {
                 size = 3;
             }
             play_game(size, menu_choice);
-        } 
+        }
         else if (menu_choice == 3) {
+        // just placeholder for now   ------ when i add 3 player mode
+        printf("Third player menu test\n\n");
+        }
+        else if (menu_choice == 4) {
             printf("\nExiting... Goodbye!\n");
             keep_playing = 0;
-        } 
+        }
         else {
-            printf("\nInvalid choice! Please select 1, 2, or 3.\n");
+            printf("\nInvalid choice! Please select 1–4.\n");
         }
     }
 
-return 0;
+    return 0;
 }
 
 
