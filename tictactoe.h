@@ -15,6 +15,7 @@ void  play_game(int size, int mode);
 void  instruct(void);
 void  log_move(FILE *fp, int move_no, int player_turn, int row_no, int col_no, char **board, int size);
 void  generate_computer_move(char **board, int size, int *row_no, int *col_no);
+void  play_three_players(int size);
 
 #endif
  

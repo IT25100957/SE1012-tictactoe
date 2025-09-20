@@ -193,12 +193,63 @@ for (int i = 0; i < size; i++) free(board[i]);
 printf("\nGame results saved to 'game_log.txt'.\n");
 }
 
+// 3 player mode ------------------test
+void play_three_players(int size) {
 
- 
+int row_no, col_no;
+int player_turn = 1;
+int move_count  = 0;
+int game_win    = 0;
 
+char marks[3] = {'X', 'O', 'Z'};     
+char **board;
 
+board = (char **)malloc(size * sizeof(char *));
+    for (int i = 0; i < size; i++)
+        board[i] = (char *)malloc(size * sizeof(char));
 
+    for (int r = 0; r < size; r++)
+        for (int c = 0; c < size; c++)
+            board[r][c] = ' ';
 
+    printf("\n Three Player \n");
+    printf("Players:\n  P1 = X\n  P2 = O\n  P3 = Z\n\n");
+
+    while (move_count < size * size && !game_win) {
+        printf("Player %d (%c) enter row and column (0-%d): ",
+               player_turn, marks[player_turn - 1], size - 1);
+        scanf("%d %d", &row_no, &col_no);
+
+        if (row_no < 0 || row_no >= size || col_no < 0 || col_no >= size) {
+            printf("Invalid! Try again.\n");
+            continue;
+        }
+
+        if (board[row_no][col_no] == ' ') {
+            board[row_no][col_no] = marks[player_turn - 1];
+            move_count++;
+            display_board(board, size);
+
+            if (check_win(board, size, marks[player_turn - 1])) {
+                printf("\nPlayer %d wins!\n", player_turn);
+                game_win = 1;
+            } else {
+                // rotate turns 1→2→3→1
+                player_turn++;
+                if (player_turn > 3) player_turn = 1;
+            }
+        } else {
+            printf("Cell already filled.\n");
+        }
+    }
+
+    if (!game_win)
+        printf("\nGame draw!\n");
+
+    for (int i = 0; i < size; i++)
+        free(board[i]);
+    free(board);
+}
 
 
 
