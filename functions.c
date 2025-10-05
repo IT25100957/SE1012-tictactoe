@@ -5,13 +5,13 @@ void instruct(void) {
     printf("========================================\n");
     printf("        WELCOME  TO  TIC  TAC  TOE!\n");
     printf("========================================\n");
-    printf("HOW TO PLAY:\n");
-    printf("- Player 1 uses 'X'. Player 2 (or Computer) uses 'O'.\n");
-    printf("- Enter two numbers: row and column (starting from 0).\n");
-    printf("- Example: '1 2' means row 1, column 2.\n");
-    printf("- You can choose board size between 3 and 10.\n");
-    printf("- First to fill an entire row, column or diagonal wins.\n");
-    printf("- Every move is saved to 'game_log.txt'.\n");
+    printf("- Player 1 uses 'X'.\n");
+    printf("- Player 2 uses 'O'.\n");
+    printf("- In 3-Player mode, Player 3 uses 'Z'.\n");
+    printf("- Enter two numbers (row column) starting from 0.\n");
+    printf("- Example: 1 2 means row 1, column 2.\n");
+    printf("- First to fill a row, column or diagonal wins!\n");
+    printf("- Every move is recorded in game_log.txt.\n");
     printf("========================================\n\n");
 }
 
@@ -78,15 +78,16 @@ int valid_move(int row_no, int col_no, int size) {
 // ===== log move into file =====
 void log_move(FILE *fp, int move_no, int player_turn, int row_no, int col_no, char **board, int size) {
     fprintf(fp, "Move %d: Player %d (%c) at [%d, %d]\n",
-            move_no, player_turn, (player_turn == 1) ? 'X' : 'O', row_no, col_no);
-    fprintf(fp, "Board state:\n\n");
+            move_no, player_turn,
+            (player_turn == 1) ? 'X' :
+            (player_turn == 2) ? 'O' : 'Z',
+            row_no, col_no);
 
-    // Print column labels
-    fprintf(fp, "   ");
+// Print column labels
+    fprintf(fp, "Board state:\n\n   ");
     for (int c = 0; c < size; c++) fprintf(fp, " %d  ", c);
     fprintf(fp, "\n");
 
-    // Print grid with row labels
     for (int r = 0; r < size; r++) {
         fprintf(fp, " %d ", r);
         for (int c = 0; c < size; c++) {
@@ -108,16 +109,12 @@ void log_move(FILE *fp, int move_no, int player_turn, int row_no, int col_no, ch
 
 // Computer move generation using rand
 void generate_computer_move(char **board, int size, int *row_no, int *col_no) {
-    int valid = 0;
-    int r, c;
-    while (!valid) {
-        r = rand() % size;
-        c = rand() % size;
-        if (board[r][c] == ' ') {
-            valid = 1;
-            *row_no = r;
-            *col_no = c;
-        }
+    int ok = 0;
+    while (!ok) {
+        *row_no = rand() % size;
+        *col_no = rand() % size;
+        if (board[*row_no][*col_no] == ' ')
+            ok = 1;
     }
 }
 
@@ -125,25 +122,22 @@ void generate_computer_move(char **board, int size, int *row_no, int *col_no) {
 void play_game(int size, int mode) {
     int row_no, col_no;
     int player_turn = 1;
-    int move_count = 0;
-    int game_win = 0;
+    int move_count = 0, game_win = 0;
+    char **board;
 
-char **board = (char **)malloc(size * sizeof(char *));
-for (int i = 0; i < size; i++)
-    board[i] = (char *)malloc(size * sizeof(char));
+    board = malloc(size * sizeof(char *));
+    for (int i = 0; i < size; i++)
+        board[i] = malloc(size * sizeof(char));
 
-// initialize with spaces
-for (int r = 0; r < size; r++)
-    for (int c = 0; c < size; c++)
-        board[r][c] = ' ';
+    for (int r = 0; r < size; r++)
+        for (int c = 0; c < size; c++)
+            board[r][c] = ' ';
 
     instruct();
     srand(time(NULL));
     FILE *fp = fopen("game_log.txt", "w");
-    if (!fp) { printf("File open error!\n"); return; }
-    fprintf(fp, "Tic Tac Toe (%dx%d) - Mode %d\n\n", size, size, mode);
-
-    printf("=== TIC TAC TOE %dx%d ===\n", size, size);
+    if (!fp) return;
+    fprintf(fp, "Mode %d | Board %dx%d\n\n", mode, size, size);
 
 while (move_count < size * size && !game_win) {
     if (mode == 2 && player_turn == 2) {
@@ -155,12 +149,13 @@ while (move_count < size * size && !game_win) {
             scanf("%d %d", &row_no, &col_no);
         }
 
-    if (!valid_move(row_no, col_no, size)) {
-         printf("Invalid position! Try within 0-%d.\n", size - 1);
-        continue;
-        }
+     if (!valid_move(row_no, col_no, size) || board[row_no][col_no] != ' ') {
+         printf("Invalid move! Cell [%d,%d] is %s\n", 
+                row_no, col_no, 
+                (!valid_move(row_no, col_no, size)) ? "out of bounds" : "already occupied");
+         continue;
+         }
 
-     if (board[row_no][col_no] == ' ') {
         board[row_no][col_no] = (player_turn == 1) ? 'X' : 'O';
         move_count++;
 
@@ -168,109 +163,125 @@ while (move_count < size * size && !game_win) {
             log_move(fp, move_count, player_turn, row_no, col_no, board, size);
 
         if (check_win(board, size, (player_turn == 1) ? 'X' : 'O')) {
-            if (mode == 2 && player_turn == 2)
-                printf("\nComputer wins!\n");
-            else
-                printf("\nPlayer %d wins!\n", player_turn);
-            fprintf(fp, "\nPlayer %d wins!\n", player_turn);
+            printf("\nPlayer %d wins!\n", player_turn);
+            fprintf(fp, "Player %d wins!\n", player_turn);
             game_win = 1;
         } else if (is_draw(move_count, game_win, size)) {
-            printf("\nGame draw! No more moves left.\n");
-            fprintf(fp, "\nGame draw!\n");
+            printf("\nGame draw!\n");
+            fprintf(fp, "Draw!\n");
             break;
+        } else player_turn = (player_turn == 1) ? 2 : 1;
+    }
+
+    fclose(fp);
+for (int i = 0; i < size; i++) free(board[i]);
+    free(board);
+}
+
+// 3 player mode ------------------Added computer mode
+void play_three_players(int size) {
+
+int row_no, col_no;
+int player_turn = 1;
+int move_count  = 0;
+int game_win    = 0;
+char marks[3]   = {'X', 'O', 'Z'};
+int is_human[3];
+
+// choose which players are human
+printf("\n=== 3 PLAYER MODE ===\n");
+printf("Board Size: %dx%d\n", size, size);
+printf("Marks: Player1 = X, Player2 = O, Player3 = Z\n");
+printf("\n--- Player Type Selection ---\n");
+printf("For each player, enter 1 for Human or 0 for Computer.\n");
+
+for (int i = 0; i < 3; i++) {
+    printf("Is Player %d (%c) human? (1=Yes, 0=No): ", i + 1, marks[i]);
+    scanf("%d", &is_human[i]);
+    if (is_human[i] != 0 && is_human[i] != 1) {
+        printf("Invalid input - human will be selected.\n");
+        is_human[i] = 1;
+    }
+}
+
+// ensure at least one human
+if (is_human[0] == 0 && is_human[1] == 0 && is_human[2] == 0) {
+    printf("\nAt least one player must be human! Forcing Player 1 to be human.\n");
+    is_human[0] = 1;
+}
+
+// allocate memory
+char **board = malloc(size * sizeof(char *));
+for (int i = 0; i < size; i++)
+   board[i] = malloc(size * sizeof(char));
+for (int r = 0; r < size; r++)
+     for (int c = 0; c < size; c++)
+         board[r][c] = ' ';
+
+    FILE *fp = fopen("game_log.txt", "w");
+    if (!fp) {
+        printf("Error opening log file!\n");
+        return;
+    }
+
+    fprintf(fp, "=== 3 PLAYER TIC-TAC-TOE ===\n");
+    fprintf(fp, "Board Size: %dx%d\n", size, size);
+    fprintf(fp, "Player Types: ");
+    for (int i = 0; i < 3; i++)
+        fprintf(fp, "P%d=%s  ", i + 1, (is_human[i]) ? "Human" : "Computer");
+    fprintf(fp, "\n\n");
+
+    srand(time(NULL));
+    printf("\nGame Start!\n");
+
+    while (move_count < size * size && !game_win) {
+
+        printf("\nPlayer %d (%c) [%s] turn:\n",
+               player_turn, marks[player_turn - 1],
+               (is_human[player_turn - 1]) ? "Human" : "Computer");
+
+        if (is_human[player_turn - 1]) {
+            printf("Enter row and column (0-%d): ", size - 1);
+            scanf("%d %d", &row_no, &col_no);
         } else {
-            player_turn = (player_turn == 1) ? 2 : 1;
-            }
-        } else if (mode == 1 || (mode == 2 && player_turn == 1)) {
-            printf("That cell is already filled! Try again.\n");
+            generate_computer_move(board, size, &row_no, &col_no);
+            printf("Computer chose: %d %d\n", row_no, col_no);
+        }
+
+        if (!valid_move(row_no, col_no, size) || board[row_no][col_no] != ' ') {
+            printf("Invalid or filled cell! Try again.\n");
+            continue;
+        }
+
+        board[row_no][col_no] = marks[player_turn-1];
+        move_count++;
+
+        display_board(board, size);
+        log_move(fp, move_count, player_turn, row_no, col_no, board, size);
+
+        if (check_win(board, size, marks[player_turn - 1])) {
+            printf("\nPlayer %d (%c) wins!\n", player_turn, marks[player_turn - 1]);
+            fprintf(fp, "\nPlayer %d (%c) wins!\n", player_turn, marks[player_turn - 1]);
+            game_win = 1;
+        }
+        else if (is_draw(move_count, game_win, size)) {
+            printf("\nGame Draw!\n");
+            fprintf(fp, "\nGame Draw!\n");
+            break;
+        }
+        else {
+            player_turn++;
+            if (player_turn > 3) player_turn = 1;
         }
     }
 
     fprintf(fp, "\n=== End of Game ===\n");
     fclose(fp);
-for (int i = 0; i < size; i++) free(board[i]);
-    free(board);
-printf("\nGame results saved to 'game_log.txt'.\n");
-}
 
-// 3 player mode ------------------Working for now
-void play_three_players(int size) {
-
-FILE *fp;
-fp = fopen("game_log.txt", "w");
-if (fp == NULL) {
-    printf("Error opening log file!\n");
-    return;
-}
-
-int row_no, col_no;
-int player_turn = 1;
-int move_count = 0;
-int game_win = 0;
-char marks[3] = {'X', 'O', 'Z'};
-
-// allocate memory
-char **board = (char **)malloc(size * sizeof(char *));
-    for (int i = 0; i < size; i++)
-        board[i] = (char *)malloc(size * sizeof(char));
-
-// fill board with spaces
-for (int r = 0; r < size; r++)
-        for (int c = 0; c < size; c++)
-            board[r][c] = ' ';
-
-    fprintf(fp, "=== 3 Player TicTacToe ===\nBoard Size: %dx%d\n\n", size, size);
-    printf("\n=== 3 PLAYER MODE ===\n");
-    printf("Player 1 -> X | Player 2 -> O | Player 3 -> Z\n");
-
-    while (move_count < size * size && !game_win) {
-
-        printf("\nPlayer %d (%c) enter row and column (0-%d): ",
-               player_turn, marks[player_turn - 1], size - 1);
-        scanf("%d %d", &row_no, &col_no);
-
-        // valid move check
-        if (row_no < 0 || row_no >= size || col_no < 0 || col_no >= size) {
-            printf("Invalid! Try again.\n");
-            continue;
-        }
-
-        if (board[row_no][col_no] == ' ') {
-            board[row_no][col_no] = marks[player_turn - 1];
-            move_count++;
-
-            // show board and also save in file
-            display_board(board, size);
-            log_move(fp, move_count, player_turn, row_no, col_no, board, size);
-
-            if (check_win(board, size, marks[player_turn - 1])) {
-                printf("\nPlayer %d (%c) WINS!\n", player_turn, marks[player_turn - 1]);
-                fprintf(fp, "\nPlayer %d (%c) WINS!\n", player_turn, marks[player_turn - 1]);
-                game_win = 1;
-            }
-            else if (is_draw(move_count, game_win, size)) {
-                printf("\nNo winner, it's a DRAW!\n");
-                fprintf(fp, "\nNo winner, it's a DRAW!\n");
-                break;
-            }
-            else {
-            
-                player_turn++;
-                if (player_turn > 3) player_turn = 1;
-            }
-        } else {
-            printf("Cell already filled.\n");
-        }
-    }
-
-    fprintf(fp, "\n=== End of 3 Player Game ===\n");
-    fclose(fp);
-
-    for (int i = 0; i < size; i++)
-        free(board[i]);
+    for (int i = 0; i < size; i++) free(board[i]);
     free(board);
 
-    printf("\nGame log saved to 'game_log.txt'\n");
+    printf("\nGame saved to game_log.txt\n");
 }
 
 
